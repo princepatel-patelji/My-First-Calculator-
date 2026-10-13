@@ -56,18 +56,91 @@
             width: 100%;
             max-width: 350px;
             border: 1px solid rgba(255,255,255,0.02);
+            position: relative;
+        }
+
+        /* Top Header Area for Menu */
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
         }
 
         .brand {
-            text-align: center;
             color: var(--text-muted);
             font-size: 10px;
             letter-spacing: 2px;
             text-transform: uppercase;
-            margin-bottom: 20px;
             font-weight: 700;
         }
 
+        .menu-btn {
+            background: var(--bg-color);
+            border: none;
+            color: var(--text-main);
+            font-size: 1.2rem;
+            cursor: pointer;
+            height: 30px;
+            width: 30px;
+            border-radius: 50%;
+            box-shadow: -3px -3px 7px var(--shadow-light), 3px 3px 7px var(--shadow-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.1s ease;
+        }
+
+        .menu-btn:active {
+            box-shadow: inset -2px -2px 5px var(--shadow-light), inset 2px 2px 5px var(--shadow-dark);
+            color: var(--accent-cyan);
+        }
+
+        /* Dropdown Menu */
+        .dropdown {
+            position: absolute;
+            top: 40px;
+            right: 0;
+            background: var(--bg-color);
+            border-radius: 15px;
+            box-shadow: -5px -5px 10px var(--shadow-light), 10px 10px 20px var(--shadow-dark);
+            padding: 10px;
+            width: 180px;
+            display: none;
+            z-index: 100;
+            flex-direction: column;
+            gap: 5px;
+            border: 1px solid rgba(255,255,255,0.02);
+        }
+
+        .dropdown.active {
+            display: flex;
+        }
+
+        .dropdown-item {
+            color: var(--text-main);
+            font-size: 0.85rem;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: 0.2s;
+        }
+
+        .dropdown-item:active {
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--accent-orange);
+            box-shadow: inset 2px 2px 5px var(--shadow-dark);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.05);
+            margin: 5px 0;
+        }
+
+        /* Display Modifications */
         .display {
             background: #151519;
             border-radius: 15px;
@@ -89,16 +162,24 @@
             font-size: 1.1rem;
             min-height: 24px;
             font-family: 'Orbitron', sans-serif;
+            overflow-x: auto;
+            scrollbar-width: none;
+            white-space: nowrap;
         }
 
+        /* Input field to replace Div for blinking cursor */
         .current-operand {
+            background: transparent;
+            border: none;
+            outline: none;
             color: var(--text-main);
             font-size: 2.5rem;
             font-weight: 700;
             font-family: 'Orbitron', sans-serif;
             letter-spacing: 1px;
-            overflow-x: auto;
-            scrollbar-width: none;
+            text-align: right;
+            width: 100%;
+            cursor: text;
         }
         .current-operand::-webkit-scrollbar { display: none; }
 
@@ -108,7 +189,7 @@
             gap: 16px;
         }
 
-        button {
+        button.calc-key {
             cursor: pointer;
             border: none;
             outline: none;
@@ -128,12 +209,10 @@
                 -5px -5px 10px var(--shadow-light),
                 5px 5px 10px var(--shadow-dark);
             transition: all 0.1s ease;
-            
-            /* Ye touch action phone me delay hatata hai */
             touch-action: manipulation;
         }
 
-        button:active {
+        button.calc-key:active {
             box-shadow: 
                 inset -3px -3px 7px var(--shadow-light),
                 inset 3px 3px 7px var(--shadow-dark);
@@ -160,263 +239,333 @@
                 inset 3px 3px 7px rgba(0,0,0,0.3);
             color: #fff;
         }
+
+        /* History Modal Overlay */
+        .history-modal {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(30, 30, 36, 0.95);
+            border-radius: 30px;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            z-index: 200;
+        }
         
+        .history-modal.active { display: flex; }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--accent-orange);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            color: var(--text-main);
+            font-size: 1rem;
+            scrollbar-width: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .history-entry {
+            background: #151519;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+
         @media (max-width: 400px) {
             .calculator { width: 95%; padding: 25px 20px; }
-            button { width: 55px; height: 55px; font-size: 1.2rem; }
+            button.calc-key { width: 55px; height: 55px; font-size: 1.2rem; }
         }
     </style>
 </head>
 <body>
 
     <div class="calculator">
-        <div class="brand">PRINCE-PRO EDITION</div>
+        <div class="top-header">
+            <div class="brand">PRINCE-PRO EDITION</div>
+            <!-- Three Dot Menu Button -->
+            <button class="menu-btn" id="menuBtn">⋮</button>
+            
+            <!-- Dropdown Menu for history and utility conversions -->
+            <div class="dropdown" id="dropdownMenu">
+                <div class="dropdown-item" onclick="toggleHistory()">📜 View History</div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" onclick="convertUnit('kg_to_g')">⚖️ Kg to Grams</div>
+                <div class="dropdown-item" onclick="convertUnit('g_to_kg')">⚖️ Grams to Kg</div>
+                <div class="dropdown-item" onclick="convertUnit('c_to_f')">🌡️ °C to °F</div>
+                <div class="dropdown-item" onclick="convertUnit('f_to_c')">🌡️ °F to °C</div>
+            </div>
+        </div>
         
         <div class="display">
             <div class="previous-operand" id="previous-operand"></div>
-            <div class="current-operand" id="current-operand">0</div>
+            <!-- Input element introduces native blinking caret tracking capability -->
+            <input type="text" class="current-operand" id="current-operand" value="0">
         </div>
 
         <div class="keypad">
-            <button data-all-clear class="btn-top btn-clear">AC</button>
-            <button data-sign class="btn-top">+/-</button>
-            <button data-operation="%" class="btn-top">%</button>
-            <button data-operation="÷" class="btn-operator">÷</button>
+            <button class="calc-key btn-top btn-clear" onclick="clearDisplay()">AC</button>
+            <button class="calc-key btn-top" onclick="insertText('(')">(</button>
+            <button class="calc-key btn-top" onclick="insertText(')')">)</button>
+            <button class="calc-key btn-operator" onclick="insertText('/')">÷</button>
 
-            <button data-number="7">7</button>
-            <button data-number="8">8</button>
-            <button data-number="9">9</button>
-            <button data-operation="×" class="btn-operator">×</button>
+            <button class="calc-key" onclick="insertText('7')">7</button>
+            <button class="calc-key" onclick="insertText('8')">8</button>
+            <button class="calc-key" onclick="insertText('9')">9</button>
+            <button class="calc-key btn-operator" onclick="insertText('*')">×</button>
 
-            <button data-number="4">4</button>
-            <button data-number="5">5</button>
-            <button data-number="6">6</button>
-            <button data-operation="−" class="btn-operator">−</button>
+            <button class="calc-key" onclick="insertText('4')">4</button>
+            <button class="calc-key" onclick="insertText('5')">5</button>
+            <button class="calc-key" onclick="insertText('6')">6</button>
+            <button class="calc-key btn-operator" onclick="insertText('-')">−</button>
 
-            <button data-number="1">1</button>
-            <button data-number="2">2</button>
-            <button data-number="3">3</button>
-            <button data-operation="+" class="btn-operator">+</button>
+            <button class="calc-key" onclick="insertText('1')">1</button>
+            <button class="calc-key" onclick="insertText('2')">2</button>
+            <button class="calc-key" onclick="insertText('3')">3</button>
+            <button class="calc-key btn-operator" onclick="insertText('+')">+</button>
 
-            <button data-delete class="btn-top" style="color: var(--accent-red); font-size: 1.3rem;">⌫</button>
-            <button data-number="0">0</button>
-            <button data-number=".">.</button>
-            <button data-equals class="btn-equals btn-operator">=</button>
+            <!-- Delete key mapped to caret index manipulation -->
+            <button class="calc-key btn-top" style="color: var(--accent-red); font-size: 1.3rem;" onclick="deleteChar()">⌫</button>
+            <button class="calc-key" onclick="insertText('0')">0</button>
+            <button class="calc-key" onclick="insertText('.')">.</button>
+            <button class="calc-key btn-equals btn-operator" onclick="evaluateMath()">=</button>
+        </div>
+
+        <!-- Local Storage History Rendering Interface -->
+        <div class="history-modal" id="historyModal">
+            <div class="history-header">
+                <span>Calculation History</span>
+                <div class="menu-btn" onclick="toggleHistory()" style="box-shadow:none;">✖</div>
+            </div>
+            <div class="history-list" id="historyList"></div>
+            <div class="dropdown-item" style="text-align:center; color: var(--accent-red); background:rgba(255,0,0,0.1);" onclick="clearHistory()">Clear History</div>
         </div>
     </div>
 
     <script>
+        const inputField = document.getElementById('current-operand');
+        const prevField = document.getElementById('previous-operand');
+        const menuBtn = document.getElementById('menuBtn');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        const historyModal = document.getElementById('historyModal');
+        const historyList = document.getElementById('historyList');
+
+        let isResultState = false;
+
         /* =========================================
-           ROBUST CALCULATOR LOGIC
+           THREE-DOT MENU LOGIC
            ========================================= */
-        class Calculator {
-            constructor(previousOperandTextElement, currentOperandTextElement) {
-                this.previousOperandTextElement = previousOperandTextElement;
-                this.currentOperandTextElement = currentOperandTextElement;
-                this.shouldResetScreen = false;
-                this.clear();
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) {
+                dropdownMenu.classList.remove('active');
+            }
+        });
+
+        /* =========================================
+           CURSOR AND CARET POSITIONING LOGIC
+           ========================================= */
+        function focusInput() {
+            inputField.focus();
+        }
+
+        // Prevents virtual keyboard from occluding the Neumorphic interface on mobile devices
+        inputField.addEventListener('focus', function() {
+            inputField.setAttribute('readonly', 'readonly');
+            setTimeout(() => {
+                inputField.removeAttribute('readonly');
+            }, 100);
+        });
+
+        function insertText(char) {
+            focusInput();
+            if (isResultState && !isNaN(char)) {
+                inputField.value = '';
+                isResultState = false;
+            } else {
+                isResultState = false;
             }
 
-            clear() {
-                this.currentOperand = '0';
-                this.previousOperand = '';
-                this.operation = undefined;
-                this.shouldResetScreen = false;
+            if (inputField.value === '0' && char !== '.') {
+                inputField.value = '';
             }
 
-            delete() {
-                if (this.shouldResetScreen) {
-                    this.clear();
-                    return;
-                }
-                if (this.currentOperand === '0') return;
-                
-                this.currentOperand = this.currentOperand.toString().slice(0, -1);
-                if (this.currentOperand === '' || this.currentOperand === '-') {
-                    this.currentOperand = '0';
-                }
+            const startPos = inputField.selectionStart;
+            const endPos = inputField.selectionEnd;
+            const currentVal = inputField.value;
+
+            // Algorithmically slices string to inject character exactly at the blinking caret index
+            inputField.value = currentVal.substring(0, startPos) + char + currentVal.substring(endPos);
+            
+            // Programmatically advances caret beyond the injected character
+            const newPos = startPos + char.length;
+            inputField.setSelectionRange(newPos, newPos);
+        }
+
+        function deleteChar() {
+            focusInput();
+            if (inputField.value === 'Error') {
+                clearDisplay();
+                return;
+            }
+            
+            const startPos = inputField.selectionStart;
+            const currentVal = inputField.value;
+
+            // Determines backward deletion bounding parameters based on selection ranges
+            if (startPos > 0) {
+                inputField.value = currentVal.substring(0, startPos - 1) + currentVal.substring(startPos);
+                inputField.setSelectionRange(startPos - 1, startPos - 1);
             }
 
-            toggleSign() {
-                if (this.currentOperand === '0') return;
-                this.currentOperand = (parseFloat(this.currentOperand) * -1).toString();
-            }
-
-            appendNumber(number) {
-                if (this.shouldResetScreen) {
-                    this.currentOperand = '';
-                    this.shouldResetScreen = false;
-                }
-                if (number === '.' && this.currentOperand.includes('.')) return;
-                if (this.currentOperand === '0' && number !== '.') {
-                    this.currentOperand = number;
-                } else {
-                    if(this.currentOperand.length < 14) {
-                        this.currentOperand = this.currentOperand.toString() + number.toString();
-                    }
-                }
-            }
-
-            chooseOperation(operation) {
-                if (this.currentOperand === '0' && this.previousOperand === '') return;
-                if (this.currentOperand === '') {
-                    this.operation = operation;
-                    return;
-                }
-                if (this.previousOperand !== '') {
-                    this.compute();
-                }
-                this.operation = operation;
-                this.previousOperand = this.currentOperand;
-                this.currentOperand = '';
-            }
-
-            compute() {
-                let computation;
-                const prev = parseFloat(this.previousOperand);
-                const current = parseFloat(this.currentOperand);
-                if (isNaN(prev) || isNaN(current)) return;
-
-                switch (this.operation) {
-                    case '+': computation = prev + current; break;
-                    case '−': computation = prev - current; break;
-                    case '×': computation = prev * current; break;
-                    case '÷': 
-                        if(current === 0) {
-                            this.currentOperand = "Error";
-                            this.operation = undefined;
-                            this.previousOperand = '';
-                            this.shouldResetScreen = true;
-                            return;
-                        }
-                        computation = prev / current; 
-                        break;
-                    case '%': computation = prev * (current / 100); break;
-                    default: return;
-                }
-                
-                computation = parseFloat(computation.toPrecision(12));
-                this.currentOperand = computation.toString();
-                this.operation = undefined;
-                this.previousOperand = '';
-                this.shouldResetScreen = true; 
-            }
-
-            getDisplayNumber(number) {
-                if (number === "Error") return number;
-                const stringNumber = number.toString();
-                const integerDigits = parseFloat(stringNumber.split('.')[0]);
-                const decimalDigits = stringNumber.split('.')[1];
-                let integerDisplay;
-                if (isNaN(integerDigits)) {
-                    integerDisplay = '';
-                } else {
-                    integerDisplay = integerDigits.toLocaleString('en', { maximumFractionDigits: 0 });
-                }
-                if (decimalDigits != null) {
-                    return `${integerDisplay}.${decimalDigits}`;
-                } else {
-                    return integerDisplay;
-                }
-            }
-
-            updateDisplay() {
-                if(this.currentOperand === "Error") {
-                    this.currentOperandTextElement.innerText = "Error";
-                    this.previousOperandTextElement.innerText = "";
-                    return;
-                }
-                if (this.currentOperand === '') {
-                    this.currentOperandTextElement.innerText = '0';
-                } else {
-                    this.currentOperandTextElement.innerText = this.getDisplayNumber(this.currentOperand);
-                }
-                if (this.operation != null) {
-                    this.previousOperandTextElement.innerText = `${this.getDisplayNumber(this.previousOperand)} ${this.operation}`;
-                } else {
-                    this.previousOperandTextElement.innerText = '';
-                }
+            if (inputField.value === '') {
+                inputField.value = '0';
             }
         }
 
-        const previousOperandTextElement = document.getElementById('previous-operand');
-        const currentOperandTextElement = document.getElementById('current-operand');
-        const calculator = new Calculator(previousOperandTextElement, currentOperandTextElement);
+        function clearDisplay() {
+            inputField.value = '0';
+            prevField.innerText = '';
+            isResultState = false;
+            focusInput();
+        }
 
         /* =========================================
-           EVENT LISTENERS (Click & Touch Support)
+           COMPUTATIONAL PARSING ENGINE
            ========================================= */
-        const numberButtons = document.querySelectorAll('[data-number]');
-        const operationButtons = document.querySelectorAll('[data-operation]');
-        const equalsButton = document.querySelector('[data-equals]');
-        const deleteButton = document.querySelector('[data-delete]');
-        const allClearButton = document.querySelector('[data-all-clear]');
-        const signButton = document.querySelector('[data-sign]');
+        function evaluateMath() {
+            focusInput();
+            let expression = inputField.value;
+            if (expression === '0' || expression === '') return;
 
-        numberButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                calculator.appendNumber(button.dataset.number);
-                calculator.updateDisplay();
-            });
-        });
+            try {
+                // String sanitization to conform with standard mathematical evaluation 
+                let parseExpr = expression.replace(/×/g, '*').replace(/−/g, '-');
+                
+                // Constructing an isolated function execution block bypassing direct eval() usage
+                let result = new Function('return ' + parseExpr)();
 
-        operationButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                calculator.chooseOperation(button.dataset.operation);
-                calculator.updateDisplay();
-            });
-        });
+                if (!isFinite(result) || isNaN(result)) throw new Error("Invalid Execution");
 
-        equalsButton.addEventListener('click', () => {
-            calculator.compute();
-            calculator.updateDisplay();
-        });
+                // Precision scaling mitigation: Resolves standard IEEE-754 64-bit float anomalies
+                result = Math.round(result * 1e12) / 1e12;
 
-        allClearButton.addEventListener('click', () => {
-            calculator.clear();
-            calculator.updateDisplay();
-        });
-
-        deleteButton.addEventListener('click', () => {
-            calculator.delete();
-            calculator.updateDisplay();
-        });
-
-        signButton.addEventListener('click', () => {
-            calculator.toggleSign();
-            calculator.updateDisplay();
-        });
+                prevField.innerText = expression + ' =';
+                inputField.value = result;
+                
+                saveHistory(expression, result);
+                isResultState = true;
+                
+            } catch (error) {
+                prevField.innerText = expression + ' =';
+                inputField.value = "Error";
+                isResultState = true;
+            }
+        }
 
         /* =========================================
-           KEYBOARD SUPPORT
+           LOCAL STORAGE SYNCHRONIZATION API
            ========================================= */
-        document.addEventListener('keydown', function(event) {
-            let key = event.key;
-            if (/[0-9.]/.test(key)) {
-                calculator.appendNumber(key);
-                calculator.updateDisplay();
+        function saveHistory(expr, result) {
+            let history = JSON.parse(localStorage.getItem('calc_history')) || [];
+            history.unshift({ expr: expr, res: result });
+            
+            // Garbage collection: strict 20-index array limitation to prevent storage bloat
+            if (history.length > 20) history.pop(); 
+            localStorage.setItem('calc_history', JSON.stringify(history));
+            loadHistory();
+        }
+
+        function loadHistory() {
+            historyList.innerHTML = '';
+            let history = JSON.parse(localStorage.getItem('calc_history')) || [];
+            
+            if(history.length === 0) {
+                historyList.innerHTML = '<div style="text-align:center; color:#8a8a8a; margin-top:20px;">No History Found</div>';
+                return;
             }
-            if (key === '+' || key === '-' || key === '*' || key === '/' || key === '%') {
-                if(key === '*') key = '×';
-                if(key === '/') key = '÷';
-                if(key === '-') key = '−';
-                calculator.chooseOperation(key);
-                calculator.updateDisplay();
+
+            // Dynamically constructs historical UI nodes from the serialized JSON array
+            history.forEach(item => {
+                let div = document.createElement('div');
+                div.className = 'history-entry';
+                div.innerHTML = `<div style="font-size:0.85rem; color:#8a8a8a">${item.expr} =</div>
+                                 <div style="font-size:1.2rem; color:#00d2d3">${item.res}</div>`;
+                div.onclick = () => {
+                    inputField.value = item.res;
+                    toggleHistory();
+                    focusInput();
+                };
+                historyList.appendChild(div);
+            });
+        }
+
+        function toggleHistory() {
+            dropdownMenu.classList.remove('active');
+            historyModal.classList.toggle('active');
+            loadHistory();
+        }
+
+        function clearHistory() {
+            localStorage.removeItem('calc_history');
+            loadHistory();
+        }
+
+        /* =========================================
+           ALGEBRAIC CONVERSION MATRIX
+           ========================================= */
+        function convertUnit(type) {
+            dropdownMenu.classList.remove('active');
+            let currentVal = parseFloat(inputField.value);
+            if (isNaN(currentVal)) return;
+
+            let result, title;
+            switch(type) {
+                case 'kg_to_g':
+                    result = currentVal * 1000;
+                    title = `${currentVal} Kg =`;
+                    break;
+                case 'g_to_kg':
+                    result = currentVal / 1000;
+                    title = `${currentVal} g =`;
+                    break;
+                case 'c_to_f':
+                    result = (currentVal * 9/5) + 32;
+                    title = `${currentVal} °C =`;
+                    break;
+                case 'f_to_c':
+                    result = (currentVal - 32) * 5/9;
+                    title = `${currentVal} °F =`;
+                    break;
             }
-            if (key === 'Enter' || key === '=') {
-                event.preventDefault();
-                calculator.compute();
-                calculator.updateDisplay();
-            }
-            if (key === 'Backspace') {
-                calculator.delete();
-                calculator.updateDisplay();
-            }
-            if (key === 'Escape' || key === 'Delete') {
-                calculator.clear();
-                calculator.updateDisplay();
-            }
-        });
+
+            // Mitigates fractional anomalies natively introduced during specific thermal conversions
+            result = Math.round(result * 1e8) / 1e8;
+
+            prevField.innerText = title;
+            inputField.value = result;
+            saveHistory(title.replace('=', '').trim(), result);
+            isResultState = true;
+        }
+
+        // Initialize Web Storage API polling upon DOM load completion
+        loadHistory();
+
     </script>
 </body>
 </html>
