@@ -6,6 +6,8 @@
     <title>Realistic 3D Pro Calculator</title>
 
     <!-- Google Fonts -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e1e2f">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -566,6 +568,16 @@
         // Initialize Web Storage API polling upon DOM load completion
         loadHistory();
 
+    
     </script>
+    <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(registration => console.log('Service Worker Registered!'))
+        .catch(err => console.log('Service Worker failed: ', err));
+    });
+  }
+</script>
 </body>
 </html>
