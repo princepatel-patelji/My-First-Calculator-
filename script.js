@@ -84,3 +84,27 @@ function closeWindow() {
     windowEl.style.display = 'none';
     alert("Calculator closed. Refresh the page to open again.");
 }
+const CACHE_NAME = 'prince-calc-v1';
+const ASSETS = [
+    './',
+    './index.html',
+    './manifest.json'
+];
+
+// App install hone par files ko offline memory mein save karna
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(ASSETS);
+        })
+    );
+});
+
+// Bina internet ke app kholne par saved files dikhana
+self.addEventListener('fetch', (event) => {
+    event.respondWith(
+        caches.match(event.request).then((response) => {
+            return response || fetch(event.request);
+        })
+    );
+});

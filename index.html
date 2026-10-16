@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Realistic 3D Pro Calculator</title>
+    <!-- PWA Installable ke liye Theme Color aur Manifest -->
+    <meta name="theme-color" content="#1e1e24">
+    <link rel="manifest" href="manifest.json">
+    <title>Prince Pro Calculator 3D</title>
 
     <!-- Google Fonts -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1e1e2f">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
         /* =========================================
-           NEUMORPHIC 3D REALISTIC DESIGN
+           NEUMORPHIC 3D REALISTIC DESIGN (NO CHANGES)
            ========================================= */
         :root {
             --bg-color: #1e1e24;
@@ -71,11 +72,12 @@
         }
 
         .brand {
-            color: var(--text-muted);
-            font-size: 10px;
+            color: var(--accent-cyan);
+            font-size: 11px;
             letter-spacing: 2px;
             text-transform: uppercase;
             font-weight: 700;
+            text-shadow: 0 0 5px rgba(0, 210, 211, 0.3);
         }
 
         .menu-btn {
@@ -169,7 +171,6 @@
             white-space: nowrap;
         }
 
-        /* Input field to replace Div for blinking cursor */
         .current-operand {
             background: transparent;
             border: none;
@@ -295,11 +296,13 @@
 
     <div class="calculator">
         <div class="top-header">
-            <div class="brand">PRINCE-PRO EDITION</div>
+            <!-- Awesome Branding added here -->
+            <div class="brand">PRINCE PATEL - PRO EDITION</div>
+            
             <!-- Three Dot Menu Button -->
             <button class="menu-btn" id="menuBtn">⋮</button>
             
-            <!-- Dropdown Menu for history and utility conversions -->
+            <!-- Dropdown Menu -->
             <div class="dropdown" id="dropdownMenu">
                 <div class="dropdown-item" onclick="toggleHistory()">📜 View History</div>
                 <div class="dropdown-divider"></div>
@@ -312,39 +315,37 @@
         
         <div class="display">
             <div class="previous-operand" id="previous-operand"></div>
-            <!-- Input element introduces native blinking caret tracking capability -->
-            <input type="text" class="current-operand" id="current-operand" value="0">
+            <input type="text" class="current-operand" id="current-operand" value="0" readonly>
         </div>
 
         <div class="keypad">
             <button class="calc-key btn-top btn-clear" onclick="clearDisplay()">AC</button>
             <button class="calc-key btn-top" onclick="insertText('(')">(</button>
             <button class="calc-key btn-top" onclick="insertText(')')">)</button>
-            <button class="calc-key btn-operator" onclick="insertText('/')">÷</button>
+            <button class="calc-key btn-operator" onclick="insertText('÷')">÷</button>
 
             <button class="calc-key" onclick="insertText('7')">7</button>
             <button class="calc-key" onclick="insertText('8')">8</button>
             <button class="calc-key" onclick="insertText('9')">9</button>
-            <button class="calc-key btn-operator" onclick="insertText('*')">×</button>
+            <button class="calc-key btn-operator" onclick="insertText('×')">×</button>
 
             <button class="calc-key" onclick="insertText('4')">4</button>
             <button class="calc-key" onclick="insertText('5')">5</button>
             <button class="calc-key" onclick="insertText('6')">6</button>
-            <button class="calc-key btn-operator" onclick="insertText('-')">−</button>
+            <button class="calc-key btn-operator" onclick="insertText('−')">−</button>
 
             <button class="calc-key" onclick="insertText('1')">1</button>
             <button class="calc-key" onclick="insertText('2')">2</button>
             <button class="calc-key" onclick="insertText('3')">3</button>
             <button class="calc-key btn-operator" onclick="insertText('+')">+</button>
 
-            <!-- Delete key mapped to caret index manipulation -->
             <button class="calc-key btn-top" style="color: var(--accent-red); font-size: 1.3rem;" onclick="deleteChar()">⌫</button>
             <button class="calc-key" onclick="insertText('0')">0</button>
             <button class="calc-key" onclick="insertText('.')">.</button>
             <button class="calc-key btn-equals btn-operator" onclick="evaluateMath()">=</button>
         </div>
 
-        <!-- Local Storage History Rendering Interface -->
+        <!-- History Modal -->
         <div class="history-modal" id="historyModal">
             <div class="history-header">
                 <span>Calculation History</span>
@@ -365,9 +366,7 @@
 
         let isResultState = false;
 
-        /* =========================================
-           THREE-DOT MENU LOGIC
-           ========================================= */
+        // Three Dot Menu
         menuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             dropdownMenu.classList.toggle('active');
@@ -379,23 +378,32 @@
             }
         });
 
-        /* =========================================
-           CURSOR AND CARET POSITIONING LOGIC
-           ========================================= */
-        function focusInput() {
-            inputField.focus();
-        }
-
-        // Prevents virtual keyboard from occluding the Neumorphic interface on mobile devices
-        inputField.addEventListener('focus', function() {
-            inputField.setAttribute('readonly', 'readonly');
-            setTimeout(() => {
-                inputField.removeAttribute('readonly');
-            }, 100);
+        // 1. Properly Integrated Keyboard Input Handle
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            
+            if (/[0-9\+\-\*\/\.\(\)%]/.test(key)) {
+                event.preventDefault(); 
+                let mappedKey = key;
+                if(key === '*') mappedKey = '×';
+                if(key === '-') mappedKey = '−';
+                if(key === '/') mappedKey = '÷';
+                insertText(mappedKey);
+            } 
+            else if (key === 'Enter' || key === '=') {
+                event.preventDefault();
+                evaluateMath();
+            } 
+            else if (key === 'Backspace') {
+                event.preventDefault();
+                deleteChar();
+            } 
+            else if (key === 'Escape') {
+                clearDisplay();
+            }
         });
 
         function insertText(char) {
-            focusInput();
             if (isResultState && !isNaN(char)) {
                 inputField.value = '';
                 isResultState = false;
@@ -406,35 +414,19 @@
             if (inputField.value === '0' && char !== '.') {
                 inputField.value = '';
             }
+            if (inputField.value === 'Error' || inputField.value === 'Math Error' || inputField.value === 'Syntax Error') {
+                inputField.value = '';
+            }
 
-            const startPos = inputField.selectionStart;
-            const endPos = inputField.selectionEnd;
-            const currentVal = inputField.value;
-
-            // Algorithmically slices string to inject character exactly at the blinking caret index
-            inputField.value = currentVal.substring(0, startPos) + char + currentVal.substring(endPos);
-            
-            // Programmatically advances caret beyond the injected character
-            const newPos = startPos + char.length;
-            inputField.setSelectionRange(newPos, newPos);
+            inputField.value += char;
         }
 
         function deleteChar() {
-            focusInput();
-            if (inputField.value === 'Error') {
+            if (inputField.value === 'Error' || inputField.value === 'Syntax Error') {
                 clearDisplay();
                 return;
             }
-            
-            const startPos = inputField.selectionStart;
-            const currentVal = inputField.value;
-
-            // Determines backward deletion bounding parameters based on selection ranges
-            if (startPos > 0) {
-                inputField.value = currentVal.substring(0, startPos - 1) + currentVal.substring(startPos);
-                inputField.setSelectionRange(startPos - 1, startPos - 1);
-            }
-
+            inputField.value = inputField.value.slice(0, -1);
             if (inputField.value === '') {
                 inputField.value = '0';
             }
@@ -444,27 +436,26 @@
             inputField.value = '0';
             prevField.innerText = '';
             isResultState = false;
-            focusInput();
         }
 
-        /* =========================================
-           COMPUTATIONAL PARSING ENGINE
-           ========================================= */
+        // The Engine (Fixed Error logic here)
         function evaluateMath() {
-            focusInput();
             let expression = inputField.value;
             if (expression === '0' || expression === '') return;
 
             try {
-                // String sanitization to conform with standard mathematical evaluation 
-                let parseExpr = expression.replace(/×/g, '*').replace(/−/g, '-');
+                // Formatting symbols back to JS Math
+                let parseExpr = expression.replace(/×/g, '*').replace(/−/g, '-').replace(/÷/g, '/');
                 
-                // Constructing an isolated function execution block bypassing direct eval() usage
+                // MAIN BUG FIX: Removes trailing operators (+, -, *, /) so 9+9+ becomes 9+9
+                parseExpr = parseExpr.replace(/[\+\-\*\/]+$/, ''); 
+                
                 let result = new Function('return ' + parseExpr)();
 
-                if (!isFinite(result) || isNaN(result)) throw new Error("Invalid Execution");
+                if (!isFinite(result) || isNaN(result)) {
+                    throw new Error("Math Error");
+                }
 
-                // Precision scaling mitigation: Resolves standard IEEE-754 64-bit float anomalies
                 result = Math.round(result * 1e12) / 1e12;
 
                 prevField.innerText = expression + ' =';
@@ -480,14 +471,10 @@
             }
         }
 
-        /* =========================================
-           LOCAL STORAGE SYNCHRONIZATION API
-           ========================================= */
+        // History Logic
         function saveHistory(expr, result) {
             let history = JSON.parse(localStorage.getItem('calc_history')) || [];
             history.unshift({ expr: expr, res: result });
-            
-            // Garbage collection: strict 20-index array limitation to prevent storage bloat
             if (history.length > 20) history.pop(); 
             localStorage.setItem('calc_history', JSON.stringify(history));
             loadHistory();
@@ -496,13 +483,10 @@
         function loadHistory() {
             historyList.innerHTML = '';
             let history = JSON.parse(localStorage.getItem('calc_history')) || [];
-            
             if(history.length === 0) {
                 historyList.innerHTML = '<div style="text-align:center; color:#8a8a8a; margin-top:20px;">No History Found</div>';
                 return;
             }
-
-            // Dynamically constructs historical UI nodes from the serialized JSON array
             history.forEach(item => {
                 let div = document.createElement('div');
                 div.className = 'history-entry';
@@ -511,7 +495,6 @@
                 div.onclick = () => {
                     inputField.value = item.res;
                     toggleHistory();
-                    focusInput();
                 };
                 historyList.appendChild(div);
             });
@@ -528,9 +511,6 @@
             loadHistory();
         }
 
-        /* =========================================
-           ALGEBRAIC CONVERSION MATRIX
-           ========================================= */
         function convertUnit(type) {
             dropdownMenu.classList.remove('active');
             let currentVal = parseFloat(inputField.value);
@@ -538,46 +518,29 @@
 
             let result, title;
             switch(type) {
-                case 'kg_to_g':
-                    result = currentVal * 1000;
-                    title = `${currentVal} Kg =`;
-                    break;
-                case 'g_to_kg':
-                    result = currentVal / 1000;
-                    title = `${currentVal} g =`;
-                    break;
-                case 'c_to_f':
-                    result = (currentVal * 9/5) + 32;
-                    title = `${currentVal} °C =`;
-                    break;
-                case 'f_to_c':
-                    result = (currentVal - 32) * 5/9;
-                    title = `${currentVal} °F =`;
-                    break;
+                case 'kg_to_g': result = currentVal * 1000; title = `${currentVal} Kg =`; break;
+                case 'g_to_kg': result = currentVal / 1000; title = `${currentVal} g =`; break;
+                case 'c_to_f': result = (currentVal * 9/5) + 32; title = `${currentVal} °C =`; break;
+                case 'f_to_c': result = (currentVal - 32) * 5/9; title = `${currentVal} °F =`; break;
             }
 
-            // Mitigates fractional anomalies natively introduced during specific thermal conversions
             result = Math.round(result * 1e8) / 1e8;
-
             prevField.innerText = title;
             inputField.value = result;
             saveHistory(title.replace('=', '').trim(), result);
             isResultState = true;
         }
 
-        // Initialize Web Storage API polling upon DOM load completion
         loadHistory();
 
-    
+        // PWA SERVICE WORKER REGISTRATION LOGIC
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker Registered!', reg))
+                    .catch(err => console.error('Service Worker Registration Failed!', err));
+            });
+        }
     </script>
-    <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(registration => console.log('Service Worker Registered!'))
-        .catch(err => console.log('Service Worker failed: ', err));
-    });
-  }
-</script>
 </body>
 </html>
